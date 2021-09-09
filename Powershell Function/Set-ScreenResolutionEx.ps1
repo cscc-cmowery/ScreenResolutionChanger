@@ -2,21 +2,23 @@
 # NAME: Set-ScreenResolutionEx.ps1
 # AUTHOR: Timothy Mui (https://github.com/timmui)
 # DATE: Jan. 7, 2015
+# Forked by: Chris Mowery (https://github.com/cscc-cmowery
 #
 # DESCRIPTION: Sets the Screen Resolution of the specified monitor. 
 #              Uses Pinvoke and ChangeDisplaySettingsEx Win32API to
 #              make the changes. Written in C# and executed in PowerShell. 
 #
 # KEYWORDS: PInvoke, height, width, pixels, Resolution, Win32 API, 
-#           Mulitple Monitor, display
+#           Mulitple Monitor, display, Frequency, hertz
 #
 # ARGUMENTS: -Width : Desired Width in pixels
 #            -Height : Desired Height in pixels
+#            -Freq : Desired Frequency in hertz
 #            -DeviceID : DeviceID of the monitor to be changed. DeviceID 
 #                        starts with 0 representing your first monitor. 
 #                        For Laptops, the built-in display is usually 0. 
 #
-# EXAMPLE: Set-ScreenResolution -Width 1920 -Height 1080 -DeviceID 0
+# EXAMPLE: Set-ScreenResolution -Width 1920 -Height 1080 -Freq 60 -DeviceID 0
 #
 # ACKNOWLEDGEMENTS: Many thanks to Andy Schneider for providing the original
 #                   code for a single monitor resolution changer.
@@ -37,6 +39,10 @@ $Height,
 
 [Parameter(Mandatory=$true, 
            Position = 2)] 
+[int] 
+$Freq,
+[Parameter(Mandatory=$true, 
+           Position = 3)] 
 [int] 
 $DeviceID
 )
@@ -179,10 +185,11 @@ namespace Resolution
         // Arguments
         // int width : Desired Width in pixels
         // int height : Desired Height in pixels
+		// int freq : Desired Frequency in hertz
         // int deviceIDIn : DeviceID of the monitor to be changed. DeviceID starts with 0 representing your first  
         //                  monitor. For Laptops, the built-in display is usually 0. 
         
-        static public string ChangeResolution(int width, int height, int deviceIDIn)
+        static public string ChangeResolution(int width, int height, int freq, int deviceIDIn)
         { 
             //Basic Error Check
             uint deviceID = 0;
@@ -210,6 +217,7 @@ namespace Resolution
  
                 dm.dmPelsWidth = width; 
                 dm.dmPelsHeight = height; 
+                dm.dmDisplayFrequency = freq;											 
  
                 int iRet = User_32.ChangeDisplaySettingsEx( d.DeviceName, ref dm, IntPtr.Zero, ChangeDisplaySettingsFlags.CDS_TEST, IntPtr.Zero); 
     
@@ -258,5 +266,5 @@ namespace Resolution
 } 
 "@
 Add-Type $Code
-[Resolution.ScreenResolution]::ChangeResolution($width,$height,$DeviceID) 
+[Resolution.ScreenResolution]::ChangeResolution($width,$height,$freq,$DeviceID) 
 } 
